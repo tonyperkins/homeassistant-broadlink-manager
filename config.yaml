@@ -1,5 +1,5 @@
 name: Broadlink Manager
-version: "1.10.63-beta"
+version: "1.10.73-beta"
 slug: broadlink-manager
 description: A Home Assistant add-on for managing Broadlink devices with web interface
 arch:
@@ -9,6 +9,7 @@ arch:
 startup: application
 boot: manual
 init: false
+auth_api: true
 webui: "http://[HOST]:[PORT:8099]"
 ingress: true
 panel_icon: mdi:remote
@@ -26,5 +27,6 @@ ports_description:
   8099/tcp: Web interface for Broadlink device management
 homeassistant_api: true
 hassio_api: true
+hassio_role: default
 map:
   - config:rw

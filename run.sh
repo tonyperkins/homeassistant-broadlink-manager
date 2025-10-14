@@ -1,20 +1,38 @@
-#!/usr/bin/with-contenv bashio
+#!/bin/bash
+set -e
 
 # ==============================================================================
 # Home Assistant Add-on: Broadlink Manager
 # Runs the Broadlink Manager application
 # ==============================================================================
 
-# Wait for Home Assistant to start
-bashio::log.info "Starting Broadlink Manager..."
+CONFIG_PATH=/data/options.json
 
-# Get configuration options
-LOG_LEVEL=$(bashio::config 'log_level')
-WEB_PORT=$(bashio::config 'web_port')
-AUTO_DISCOVER=$(bashio::config 'auto_discover')
+echo "[INFO] Starting Broadlink Manager..."
+
+# Set SUPERVISOR_TOKEN if not already set (Home Assistant provides this)
+if [ -z "$SUPERVISOR_TOKEN" ]; then
+    # Try to read from the standard location
+    if [ -f /run/secrets/supervisor_token ]; then
+        export SUPERVISOR_TOKEN=$(cat /run/secrets/supervisor_token)
+        echo "[INFO] Loaded SUPERVISOR_TOKEN from /run/secrets/supervisor_token"
+    elif [ -f /var/run/secrets/supervisor_token ]; then
+        export SUPERVISOR_TOKEN=$(cat /var/run/secrets/supervisor_token)
+        echo "[INFO] Loaded SUPERVISOR_TOKEN from /var/run/secrets/supervisor_token"
+    else
+        echo "[WARNING] SUPERVISOR_TOKEN not found - will run in standalone mode"
+    fi
+else
+    echo "[INFO] Running in Supervisor mode (SUPERVISOR_TOKEN found)"
+fi
+
+# Get configuration options from Home Assistant
+LOG_LEVEL=$(jq --raw-output '.log_level // "info"' $CONFIG_PATH)
+WEB_PORT=$(jq --raw-output '.web_port // "8099"' $CONFIG_PATH)
+AUTO_DISCOVER=$(jq --raw-output '.auto_discover // "true"' $CONFIG_PATH)
 
 # Set log level
-bashio::log.info "Setting log level to: ${LOG_LEVEL}"
+echo "[INFO] Setting log level to: ${LOG_LEVEL}"
 export LOG_LEVEL
 
 # Set configuration environment variables
@@ -22,14 +40,14 @@ export WEB_PORT
 export AUTO_DISCOVER
 
 # Print configuration
-bashio::log.info "Configuration:"
-bashio::log.info "- Log Level: ${LOG_LEVEL}"
-bashio::log.info "- Web Port: ${WEB_PORT}"
-bashio::log.info "- Auto Discover: ${AUTO_DISCOVER}"
+echo "[INFO] Configuration:"
+echo "[INFO] - Log Level: ${LOG_LEVEL}"
+echo "[INFO] - Web Port: ${WEB_PORT}"
+echo "[INFO] - Auto Discover: ${AUTO_DISCOVER}"
 
 # Start the application
-bashio::log.info "Starting Broadlink Manager application..."
-cd /app || bashio::exit.nok "Cannot change to application directory"
+echo "[INFO] Starting Broadlink Manager application..."
+cd /app || { echo "[ERROR] Cannot change to application directory"; exit 1; }
 
 # Run the main application
 exec python3 main.py

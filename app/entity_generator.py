@@ -128,36 +128,40 @@ class EntityGenerator:
                 continue
 
             entity_type = entity_data["entity_type"]
+            
+            # Strip domain prefix if present (e.g., "light.my_lamp" -> "my_lamp")
+            # Entity IDs should never have domain prefix in storage, but handle it defensively
+            entity_slug = entity_id.split(".", 1)[1] if "." in entity_id else entity_id
 
             if entity_type == "light":
                 config = self._generate_light(
-                    entity_id, entity_data, broadlink_commands
+                    entity_slug, entity_data, broadlink_commands
                 )
             elif entity_type == "fan":
-                config = self._generate_fan(entity_id, entity_data, broadlink_commands)
+                config = self._generate_fan(entity_slug, entity_data, broadlink_commands)
             elif entity_type == "switch":
                 config = self._generate_switch(
-                    entity_id, entity_data, broadlink_commands
+                    entity_slug, entity_data, broadlink_commands
                 )
             elif entity_type == "media_player":
                 config = self._generate_media_player(
-                    entity_id, entity_data, broadlink_commands
+                    entity_slug, entity_data, broadlink_commands
                 )
             elif entity_type == "climate":
                 # Climate entities are not supported - template.climate platform removed from HA
                 # Users should use SmartIR custom integration for AC control
                 logger.warning(
-                    f"Climate entity type not supported for {entity_id}. "
+                    f"Climate entity type not supported for {entity_slug}. "
                     "Use SmartIR custom integration for AC control: "
                     "https://github.com/smartHomeHub/SmartIR"
                 )
                 continue
             elif entity_type == "cover":
                 config = self._generate_cover(
-                    entity_id, entity_data, broadlink_commands
+                    entity_slug, entity_data, broadlink_commands
                 )
             else:
-                logger.warning(f"Unknown entity type: {entity_type} for {entity_id}")
+                logger.warning(f"Unknown entity type: {entity_type} for {entity_slug}")
                 continue
 
             if config:
@@ -170,13 +174,13 @@ class EntityGenerator:
 
                     # Also generate companion switch for power control
                     switch_config = self._generate_media_player_switch(
-                        entity_id, entity_data, broadlink_commands
+                        entity_slug, entity_data, broadlink_commands
                     )
                     if switch_config:
                         if "switch" not in entities_by_type:
                             entities_by_type["switch"] = {}
                         # Extract switch config from wrapper
-                        switch_entity_id = f"{entity_id}_power"
+                        switch_entity_id = f"{entity_slug}_power"
                         switch_platform_key = list(switch_config.keys())[1]
                         switch_entity_config = switch_config[switch_platform_key][
                             switch_entity_id
@@ -192,8 +196,8 @@ class EntityGenerator:
                     # Extract the entity config from the platform wrapper
                     # config is like: {"platform": "template", "lights": {"entity_id": {...}}}
                     platform_key = list(config.keys())[1]  # Get 'lights', 'fans', etc.
-                    entity_config = config[platform_key][entity_id]
-                    entities_by_type[entity_type][entity_id] = entity_config
+                    entity_config = config[platform_key][entity_slug]
+                    entities_by_type[entity_type][entity_slug] = entity_config
 
         # Now build the final YAML structure with one platform entry per type (for template platforms)
         for entity_type, entities_dict in entities_by_type.items():
@@ -1124,14 +1128,18 @@ class EntityGenerator:
                 continue
 
             entity_type = entity_data["entity_type"]
+            
+            # Strip domain prefix if present (e.g., "light.my_lamp" -> "my_lamp")
+            # Entity IDs should never have domain prefix in storage, but handle it defensively
+            entity_slug = entity_id.split(".", 1)[1] if "." in entity_id else entity_id
 
             # Get display name (prefer 'name' over 'friendly_name')
             display_name = entity_data.get("name") or entity_data.get(
-                "friendly_name", entity_id
+                "friendly_name", entity_slug
             )
 
             # All entities need a state tracker
-            helpers["input_boolean"][f"{entity_id}_state"] = {
+            helpers["input_boolean"][f"{entity_slug}_state"] = {
                 "name": f"{display_name} State",
                 "initial": False,
             }
@@ -1153,7 +1161,7 @@ class EntityGenerator:
 
                 options = ["off"] + [str(i) for i in range(1, speed_count + 1)]
 
-                helpers["input_select"][f"{entity_id}_speed"] = {
+                helpers["input_select"][f"{entity_slug}_speed"] = {
                     "name": f"{display_name} Speed",
                     "options": options,
                     "initial": "off",
@@ -1166,7 +1174,7 @@ class EntityGenerator:
                     or "direction" in commands
                     or "fan_reverse" in commands
                 ):
-                    helpers["input_select"][f"{entity_id}_direction"] = {
+                    helpers["input_select"][f"{entity_slug}_direction"] = {
                         "name": f"{display_name} Direction",
                         "options": ["forward", "reverse"],
                         "initial": "forward",
@@ -1192,7 +1200,7 @@ class EntityGenerator:
                         k.replace("source_", "").upper() for k in source_commands.keys()
                     ]
 
-                    helpers["input_select"][f"{entity_id}_source"] = {
+                    helpers["input_select"][f"{entity_slug}_source"] = {
                         "name": f"{display_name} Source",
                         "options": sources,
                         "initial": sources[0] if sources else "HDMI1",
@@ -1203,7 +1211,7 @@ class EntityGenerator:
                 commands = entity_data.get("commands", {})
 
                 # Add position selector
-                helpers["input_select"][f"{entity_id}_position"] = {
+                helpers["input_select"][f"{entity_slug}_position"] = {
                     "name": f"{display_name} Position",
                     "options": ["open", "closed", "partial"],
                     "initial": "closed",
@@ -1215,7 +1223,7 @@ class EntityGenerator:
                 }
                 if position_commands:
                     helpers["input_number"] = helpers.get("input_number", {})
-                    helpers["input_number"][f"{entity_id}_position"] = {
+                    helpers["input_number"][f"{entity_slug}_position"] = {
                         "name": f"{display_name} Position",
                         "min": 0,
                         "max": 100,

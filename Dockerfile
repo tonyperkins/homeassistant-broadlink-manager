@@ -16,7 +16,9 @@ RUN \
     openssl-dev \
     cargo \
     rust \
-    curl
+    curl \
+    jq \
+    bash
 
 # Python requirements
 # Cache bust: 2025-10-10-v2

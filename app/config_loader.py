@@ -34,7 +34,17 @@ class ConfigLoader:
         Returns:
             True if running as a Supervisor add-on, False if standalone
         """
-        return os.environ.get("SUPERVISOR_TOKEN") is not None
+        # Check for SUPERVISOR_TOKEN first
+        if os.environ.get("SUPERVISOR_TOKEN"):
+            return True
+        
+        # Fallback: Check if /data/options.json exists (add-on config file)
+        # This file only exists when running as a Home Assistant add-on
+        if Path("/data/options.json").exists():
+            logger.info("Detected add-on environment via /data/options.json")
+            return True
+            
+        return False
 
     def get_ha_url(self) -> str:
         """
@@ -195,17 +205,17 @@ class ConfigLoader:
         """
         valid = True
 
-        # Check for HA token
-        if not self.get_ha_token():
+        # Check for HA token (only required in standalone mode)
+        # In supervisor mode, the add-on can use the internal API without explicit token
+        if not self.is_supervisor and not self.get_ha_token():
             logger.error(f"Missing authentication token in {self.mode} mode")
-            if self.is_supervisor:
-                logger.error("SUPERVISOR_TOKEN not found")
-            else:
-                logger.error("HA_TOKEN environment variable not set")
-                logger.error(
-                    "Please create a long-lived access token in Home Assistant"
-                )
+            logger.error("HA_TOKEN environment variable not set")
+            logger.error(
+                "Please create a long-lived access token in Home Assistant"
+            )
             valid = False
+        elif self.is_supervisor and not self.get_ha_token():
+            logger.warning("SUPERVISOR_TOKEN not found, but continuing (add-on has internal API access)")
 
         # Check config path exists (in standalone mode, user must mount it)
         config_path = self.get_config_path()
