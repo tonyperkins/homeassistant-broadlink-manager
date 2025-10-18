@@ -1,5 +1,29 @@
 # Broadlink Manager Add-on
 
+<div align="center" style="background-color: #ff4444; padding: 30px; border-radius: 10px; margin: 20px 0;">
+  <h2 style="color: white; margin: 0;">🚨 PROJECT HAS MOVED TO V2 🚨</h2>
+  <h3 style="color: white; margin: 10px 0;">⚠️ THIS REPOSITORY IS NO LONGER ACTIVELY DEVELOPED ⚠️</h3>
+  <p style="color: white; font-size: 18px; font-weight: bold; margin: 15px 0;">
+    This project is evolving VERY quickly and we have moved on to V2 with SmartIR integration!
+  </p>
+  <h3 style="color: #ffff00; margin: 20px 0; font-size: 24px;">
+    🎯 <a href="https://github.com/tonyperkins/homeassistant-broadlink-manager-v2" style="color: #ffff00; text-decoration: underline;">→ GO TO V2 REPOSITORY NOW ←</a> 🎯
+  </h3>
+  <div style="color: white; text-align: left; display: inline-block; margin: 15px 0;">
+    <p style="font-weight: bold; margin-bottom: 10px;">V2 Features:</p>
+    <ul style="text-align: left;">
+      <li>✨ <strong>SmartIR Integration</strong> - Full climate control, media players, and more</li>
+      <li>🚀 <strong>Enhanced Functionality</strong> - Better integration with Home Assistant platforms</li>
+      <li>🔧 <strong>Active Development</strong> - All new features and bug fixes happening in V2</li>
+      <li>📦 <strong>Modern Architecture</strong> - Improved performance and reliability</li>
+    </ul>
+  </div>
+  <p style="color: white; font-weight: bold; margin-top: 15px;">
+    This V1 repository is in maintenance mode only. No new features will be added here.
+  </p>
+</div>
+
+---
 
 A Home Assistant add-on for managing Broadlink devices with a built-in web interface for easy IR/RF command learning and management.
 
